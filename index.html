@@ -133,7 +133,7 @@
     
     <textarea id="inputText" placeholder="请在此粘贴您的字幕内容 (支持 .srt 和 .ass 格式)..."></textarea>
     <button id="clipboardBtn">一键处理剪贴板内容</button>
-    <button id="processBtn">移除时间轴信息</button>
+    <button id="processBtn">移除时间轴信息并复制</button>
     <div id="errorMessage" class="error"></div>
     <div class="output-container">
         <textarea id="outputText" placeholder="处理后的文本将显示在这里..." readonly></textarea>
@@ -195,10 +195,11 @@
             return outputLines.join('\n');
     }
 
-    function processSubtitle() {
+    async function processSubtitle() {
         const inputArea = document.getElementById('inputText');
         const outputArea = document.getElementById('outputText');
         const errorDiv = document.getElementById('errorMessage');
+        const btn = document.getElementById('processBtn');
 
         errorDiv.textContent = '';
         outputArea.value = '';
@@ -211,7 +212,37 @@
         }
 
         try {
-            outputArea.value = processText(input);
+            const result = processText(input);
+            outputArea.value = result;
+
+            // 处理成功后自动复制到剪贴板
+            if (!result.trim()) {
+                errorDiv.textContent = "没有从输入内容中解析出字幕文本。";
+                return;
+            }
+
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(result);
+                } else {
+                    // 降级方案
+                    outputArea.select();
+                    outputArea.setSelectionRange(0, 99999);
+                    document.execCommand('copy');
+                }
+                const originalText = btn.textContent;
+                btn.textContent = '已处理并复制!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            } catch (copyErr) {
+                console.error('自动复制失败:', copyErr);
+                const originalText = btn.textContent;
+                btn.textContent = '已处理（复制失败）';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            }
         } catch (error) {
             console.error('处理过程中发生错误:', error);
             errorDiv.textContent = "处理过程中发生错误: " + error.message;
