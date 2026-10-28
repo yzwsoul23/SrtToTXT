@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>字幕时间轴信息移除工具</title>
+    <title>字幕转文本</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -117,28 +117,46 @@
         #downloadBtn:hover {
             background-color: #218838;
         }
+
+        @media (max-width: 600px) {
+            body {
+                margin: 10px;
+            }
+            .container {
+                padding: 10px;
+            }
+            textarea {
+                height: 150px;
+            }
+            .upload-area {
+                padding: 15px;
+            }
+            .upload-area .icon {
+                font-size: 28px;
+            }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>字幕时间轴信息移除工具</h1>
+    <h1>字幕转文本</h1>
     
     <div class="upload-area" id="uploadArea">
         <div class="icon">📁</div>
-        <p>点击或拖拽上传字幕文件 (支持 .srt / .ass)</p>
+        <p>点上传字幕文件 (支持 .srt / .ass)</p>
         <input type="file" id="fileInput" accept=".srt,.ass,.txt">
     </div>
     <div id="fileInfo" class="file-info"></div>
     
     <textarea id="inputText" placeholder="请在此粘贴您的字幕内容 (支持 .srt 和 .ass 格式)..."></textarea>
-    <button id="clipboardBtn">一键处理剪贴板内容</button>
-    <button id="processBtn">移除时间轴信息并复制</button>
+    <button id="clipboardBtn">一键处理容</button>
+    <button id="processBtn">移除并复制</button>
     <div id="errorMessage" class="error"></div>
     <div class="output-container">
         <textarea id="outputText" placeholder="处理后的文本将显示在这里..." readonly></textarea>
         <div class="btn-group">
-            <button id="copyBtn">复制到剪贴板</button>
+            <button id="copyBtn">复制</button>
             <button id="downloadBtn">下载 TXT</button>
         </div>
     </div>
