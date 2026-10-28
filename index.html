@@ -144,12 +144,12 @@
     
     <div class="upload-area" id="uploadArea">
         <div class="icon">📁</div>
-        <p>点上传字幕文件 (支持 .srt / .ass)</p>
-        <input type="file" id="fileInput" accept=".srt,.ass,.txt">
+        <p>点击上传字幕文件 (支持 .srt / .ass / .lrc)</p>
+        <input type="file" id="fileInput" accept=".srt,.ass,.lrc,.txt">
     </div>
     <div id="fileInfo" class="file-info"></div>
     
-    <textarea id="inputText" placeholder="请在此粘贴您的字幕内容 (支持 .srt 和 .ass 格式)..."></textarea>
+    <textarea id="inputText" placeholder="请在此粘贴您的字幕内容 (支持 .srt / .ass / .lrc 格式)..."></textarea>
     <button id="clipboardBtn">一键处理容</button>
     <button id="processBtn">移除并复制</button>
     <div id="errorMessage" class="error"></div>
@@ -167,6 +167,9 @@
         let lines = input.split('\n');
         let outputLines = [];
         let isAssFormat = lines.some(line => line.trim().startsWith("Dialogue:"));
+        // LRC 格式特征：包含 [mm:ss.xx] 或 [mm:ss] 时间标签
+        let lrcTimeTagRegex = /\[\d{1,2}:\d{1,2}(?:\.\d{1,3})?\]/;
+        let isLrcFormat = lines.some(line => lrcTimeTagRegex.test(line.trim()));
 
             if (isAssFormat) {
                 let inEventsSection = false;
@@ -195,6 +198,22 @@
                              }
                          }
                     }
+                }
+            } else if (isLrcFormat) {
+                // LRC 歌词格式：移除行首所有 [mm:ss.xx] 时间标签，保留歌词文本
+                let seen = new Set();
+                for (let line of lines) {
+                    let trimmedLine = line.trim();
+                    if (!trimmedLine) continue;
+                    // 移除所有时间标签（包括同一行多个标签的情况）
+                    let text = trimmedLine.replace(/\[\d{1,2}:\d{1,2}(?:\.\d{1,3})?\]/g, '').trim();
+                    // 跳过空行和 LRC 元信息标签（如 [ti:] [ar:] [al:] [by:] 等）
+                    if (!text) continue;
+                    if (/^\[(ti|ar|al|au|by|offset|length|re|ve):/i.test(trimmedLine)) continue;
+                    // 去重（同一行有多个时间标签时会产生重复歌词）
+                    if (seen.has(text)) continue;
+                    seen.add(text);
+                    outputLines.push(text);
                 }
             } else {
                 let i = 0;
@@ -372,12 +391,12 @@
 
         if (!file) return;
 
-        const validExtensions = ['.srt', '.ass', '.txt'];
+        const validExtensions = ['.srt', '.ass', '.lrc', '.txt'];
         const fileName = file.name.toLowerCase();
         const isValid = validExtensions.some(ext => fileName.endsWith(ext));
 
         if (!isValid) {
-            errorDiv.textContent = "不支持的文件格式，请上传 .srt、.ass 或 .txt 文件。";
+            errorDiv.textContent = "不支持的文件格式，请上传 .srt、.ass、.lrc 或 .txt 文件。";
             return;
         }
 
